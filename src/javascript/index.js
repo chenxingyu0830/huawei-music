@@ -17,7 +17,7 @@ class Player {
   }
 
   start() {
-    fetch('https://jirengu.github.io/data-mock/huawei-music/music-list.json')
+    fetch('https://smallyu.top//data-mock/huawei-music/music-list.json')
     .then(res => res.json())
     .then(data => {
       console.log(data)

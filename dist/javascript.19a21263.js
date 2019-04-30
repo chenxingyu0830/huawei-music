@@ -285,7 +285,7 @@ function () {
     value: function start() {
       var _this2 = this;
 
-      fetch('https://jirengu.github.io/data-mock/huawei-music/music-list.json').then(function (res) {
+      fetch('https://smallyu.top//data-mock/huawei-music/music-list.json').then(function (res) {
         return res.json();
       }).then(function (data) {
         console.log(data);
