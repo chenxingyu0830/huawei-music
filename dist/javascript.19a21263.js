@@ -274,6 +274,8 @@ function () {
     this.songList = [];
     this.currentIndex = 0;
     this.audio = new Audio();
+    this.lyricsArr = [];
+    this.lyricIndex = -1;
     this.start();
     this.bind();
   }
@@ -289,6 +291,8 @@ function () {
         console.log(data);
         _this2.songList = data;
         _this2.audio.src = _this2.songList[_this2.currentIndex].url;
+
+        _this2.renderSong();
       });
     }
   }, {
@@ -311,11 +315,24 @@ function () {
       };
 
       this.$('.btn-pre').onclick = function () {
-        self.playPrevSong();
+        // self.playPrevSong()
+        console.log('pre');
+        self.currentIndex = (self.songList.length + self.currentIndex - 1) % self.songList.length;
+        self.renderSong();
+        self.playSong();
       };
 
       this.$('.btn-next').onclick = function () {
-        self.playNextSong();
+        // self.playNextSong()
+        self.currentIndex = (self.currentIndex + 1) % self.songList.length;
+        self.renderSong();
+        self.playSong();
+      };
+
+      this.audio.ontimeupdate = function () {
+        console.log(parseInt(self.audio.currentTime * 1000));
+        self.locateLyric();
+        self.setProgerssBar();
       };
 
       var swiper = new _swiper.default(this.$('.panels'));
@@ -331,37 +348,142 @@ function () {
       });
     }
   }, {
-    key: "playPrevSong",
-    value: function playPrevSong() {
+    key: "renderSong",
+    value: function renderSong() {
       var _this3 = this;
 
-      this.currentIndex = (this.songList.length + this.currentIndex - 1) % this.songList.length;
-      this.audio.src = this.songList[this.currentIndex].url;
-      console.log(this.audio);
+      var songObj = this.songList[this.currentIndex];
+      this.$('.header h1').innerText = songObj.title;
+      this.$('.header p').innerText = songObj.author + '-' + songObj.albumn;
+      this.audio.src = songObj.url;
 
-      this.audio.oncanplaythrough = function () {
-        return _this3.audio.play();
+      this.audio.onloadedmetadata = function () {
+        return _this3.$('.time-end').innerText = _this3.formateTime(_this3.audio.duration);
       };
+
+      this.loadLyrics();
     }
   }, {
-    key: "playNextSong",
-    value: function playNextSong() {
+    key: "playSong",
+    value: function playSong() {
       var _this4 = this;
-
-      this.currentIndex = (this.currentIndex + 1) % this.songList.length;
-      this.audio.src = this.songList[this.currentIndex].url;
-      console.log(this.audio);
 
       this.audio.oncanplaythrough = function () {
         return _this4.audio.play();
       };
+    } // playPrevSong() {
+    //   this.currentIndex = (this.songList.length + this.currentIndex - 1) % this.songList.length
+    //   this.audio.src = this.songList[this.currentIndex].url
+    //   this.renderSong()
+    //   this.audio.oncanplaythrough = () => this.audio.play()
+    // }
+    // playNextSong() {
+    //   this.currentIndex = (this.currentIndex + 1) % this.songList.length
+    //   this.audio.src = this.songList[this.currentIndex].url
+    //   this.renderSong()
+    //   this.audio.oncanplaythrough = () => this.audio.play()
+    // }
+
+  }, {
+    key: "loadLyrics",
+    value: function loadLyrics() {
+      var _this5 = this;
+
+      fetch(this.songList[this.currentIndex].lyric).then(function (res) {
+        return res.json();
+      }).then(function (data) {
+        console.log(data.lrc.lyric);
+
+        _this5.setLyrics(data.lrc.lyric);
+
+        window.lyrics = data.lrc.lyric;
+      });
+    }
+  }, {
+    key: "locateLyric",
+    value: function locateLyric() {
+      console.log('locateLyric');
+      var currentTime = this.audio.currentTime * 1000;
+      var nextLineTime = this.lyricsArr[this.lyricIndex + 1][0];
+
+      if (currentTime > nextLineTime && this.lyricIndex < this.lyricsArr.length - 1) {
+        this.lyricIndex++;
+        var node = this.$('[data-time="' + this.lyricsArr[this.lyricIndex][0] + '"]');
+        if (node) this.setLyricToCenter(node);
+        this.$$('.panel-effect .lyric p')[0].innerText = this.lyricsArr[this.lyricIndex][1];
+        this.$$('.panel-effect .lyric p')[1].innerText = this.lyricsArr[this.lyricIndex + 1] ? this.lyricsArr[this.lyricIndex + 1][1] : '';
+      }
+    }
+  }, {
+    key: "setLyrics",
+    value: function setLyrics(lyrics) {
+      this.lyricIndex = 0;
+      var fragment = document.createDocumentFragment();
+      var lyricsArr = [];
+      this.lyricsArr = lyricsArr;
+      lyrics.split(/\n/).filter(function (str) {
+        return str.match(/\[.+?\]/);
+      }).forEach(function (line) {
+        var str = line.replace(/\[.+?\]/g, '');
+        line.match(/\[.+?\]/g).forEach(function (t) {
+          t = t.replace(/[\[\]]/g, '');
+          var milliseconds = parseInt(t.slice(0, 2)) * 60 * 1000 + parseInt(t.slice(3, 5)) * 1000 + parseInt(t.slice(6));
+          lyricsArr.push([milliseconds, str]);
+        });
+      });
+      lyricsArr.filter(function (line) {
+        return line[1].trim() !== '';
+      }).sort(function (v1, v2) {
+        if (v1[0] > v2[0]) {
+          return 1;
+        } else {
+          return -1;
+        }
+      }).forEach(function (line) {
+        var node = document.createElement('p');
+        node.setAttribute('data-time', line[0]);
+        node.innerText = line[1];
+        fragment.appendChild(node);
+      });
+      this.$('.panel-lyrics .container').innerHTML = '';
+      this.$('.panel-lyrics .container').appendChild(fragment);
+    }
+  }, {
+    key: "setLyricToCenter",
+    value: function setLyricToCenter(node) {
+      var offset = node.offsetTop - this.$('.panel-lyrics').offsetHeight / 2;
+      offset = offset > 0 ? offset : 0;
+      this.$('.panel-lyrics .container').style.transform = "translateY(-".concat(offset, "px)");
+      this.$$('.panel-lyrics p').forEach(function (node) {
+        return node.classList.remove('current');
+      });
+      node.classList.add('current');
+    }
+  }, {
+    key: "setProgerssBar",
+    value: function setProgerssBar() {
+      console.log('set setProgerssBar');
+      var percent = this.audio.currentTime * 100 / this.audio.duration + '%';
+      console.log(percent);
+      this.$('.bar .progress').style.width = percent;
+      this.$('.time-start').innerText = this.formateTime(this.audio.currentTime);
+      console.log(this.$('.bar .progress').style.width);
+    }
+  }, {
+    key: "formateTime",
+    value: function formateTime(secondsTotal) {
+      var minutes = parseInt(secondsTotal / 60);
+      minutes = minutes >= 10 ? '' + minutes : '0' + minutes;
+      var seconds = parseInt(secondsTotal % 60);
+      seconds = seconds >= 10 ? '' + seconds : '0' + seconds;
+      return minutes + ':' + seconds;
     }
   }]);
 
   return Player;
 }();
 
-window.player = new Player('#player');
+window.p = new Player('#player');
 },{"./icons":"src/javascript/icons.js","./swiper":"src/javascript/swiper.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -390,7 +512,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "12640" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "10038" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
