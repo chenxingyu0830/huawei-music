@@ -1,12 +1,11 @@
 import './icons'
 import Swiper from './swiper'
 
-const $ = selector => document.querySelector(selector)
-const $$ = selector => document.querySelectorAll(selector)
-
 class Player {
   constructor(node) {
-    this.root = typeof node === 'string' ? $(node) : node
+    this.root = typeof node === 'string' ? document.querySelector(node) : node
+    this.$ = (selector)=> this.root.querySelector(selector)
+    this.$$ = (selector)=> this.root.querySelectorAll(selector)
     this.songList = []
     this.currentIndex = 0
     this.audio = new Audio()
@@ -26,7 +25,7 @@ class Player {
 
   bind() {
     let self = this
-    this.root.querySelector('.btn-play-pause').onclick = function(){
+    this.$('.btn-play-pause').onclick = function(){
       if(this.classList.contains('playing')){
         self.audio.pause()
         this.classList.remove('playing')
@@ -40,14 +39,14 @@ class Player {
       }
     }
 
-    this.root.querySelector('.btn-pre').onclick = function() {
+    this.$('.btn-pre').onclick = function() {
       self.playPrevSong()
     }
-    this.root.querySelector('.btn-next').onclick = function() {
+    this.$('.btn-next').onclick = function() {
       self.playNextSong()
     }
 
-    let swiper = new Swiper(this.root.querySelector('.panels'))
+    let swiper = new Swiper(this.$('.panels'))
     swiper.on('swipLeft',function() {
       console.log(this)
       this.classList.remove('panel1')
@@ -75,4 +74,4 @@ class Player {
   }
 }
 
-window.player = new Player($('#player'))
+window.player = new Player('#player')

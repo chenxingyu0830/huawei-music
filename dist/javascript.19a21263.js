@@ -253,21 +253,24 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var $ = function $(selector) {
-  return document.querySelector(selector);
-};
-
-var $$ = function $$(selector) {
-  return document.querySelectorAll(selector);
-};
-
 var Player =
 /*#__PURE__*/
 function () {
   function Player(node) {
+    var _this = this;
+
     _classCallCheck(this, Player);
 
-    this.root = typeof node === 'string' ? $(node) : node;
+    this.root = typeof node === 'string' ? document.querySelector(node) : node;
+
+    this.$ = function (selector) {
+      return _this.root.querySelector(selector);
+    };
+
+    this.$$ = function (selector) {
+      return _this.root.querySelectorAll(selector);
+    };
+
     this.songList = [];
     this.currentIndex = 0;
     this.audio = new Audio();
@@ -278,14 +281,14 @@ function () {
   _createClass(Player, [{
     key: "start",
     value: function start() {
-      var _this = this;
+      var _this2 = this;
 
       fetch('https://jirengu.github.io/data-mock/huawei-music/music-list.json').then(function (res) {
         return res.json();
       }).then(function (data) {
         console.log(data);
-        _this.songList = data;
-        _this.audio.src = _this.songList[_this.currentIndex].url;
+        _this2.songList = data;
+        _this2.audio.src = _this2.songList[_this2.currentIndex].url;
       });
     }
   }, {
@@ -293,7 +296,7 @@ function () {
     value: function bind() {
       var self = this;
 
-      this.root.querySelector('.btn-play-pause').onclick = function () {
+      this.$('.btn-play-pause').onclick = function () {
         if (this.classList.contains('playing')) {
           self.audio.pause();
           this.classList.remove('playing');
@@ -307,15 +310,15 @@ function () {
         }
       };
 
-      this.root.querySelector('.btn-pre').onclick = function () {
+      this.$('.btn-pre').onclick = function () {
         self.playPrevSong();
       };
 
-      this.root.querySelector('.btn-next').onclick = function () {
+      this.$('.btn-next').onclick = function () {
         self.playNextSong();
       };
 
-      var swiper = new _swiper.default(this.root.querySelector('.panels'));
+      var swiper = new _swiper.default(this.$('.panels'));
       swiper.on('swipLeft', function () {
         console.log(this);
         this.classList.remove('panel1');
@@ -330,22 +333,9 @@ function () {
   }, {
     key: "playPrevSong",
     value: function playPrevSong() {
-      var _this2 = this;
-
-      this.currentIndex = (this.songList.length + this.currentIndex - 1) % this.songList.length;
-      this.audio.src = this.songList[this.currentIndex].url;
-      console.log(this.audio);
-
-      this.audio.oncanplaythrough = function () {
-        return _this2.audio.play();
-      };
-    }
-  }, {
-    key: "playNextSong",
-    value: function playNextSong() {
       var _this3 = this;
 
-      this.currentIndex = (this.currentIndex + 1) % this.songList.length;
+      this.currentIndex = (this.songList.length + this.currentIndex - 1) % this.songList.length;
       this.audio.src = this.songList[this.currentIndex].url;
       console.log(this.audio);
 
@@ -353,12 +343,25 @@ function () {
         return _this3.audio.play();
       };
     }
+  }, {
+    key: "playNextSong",
+    value: function playNextSong() {
+      var _this4 = this;
+
+      this.currentIndex = (this.currentIndex + 1) % this.songList.length;
+      this.audio.src = this.songList[this.currentIndex].url;
+      console.log(this.audio);
+
+      this.audio.oncanplaythrough = function () {
+        return _this4.audio.play();
+      };
+    }
   }]);
 
   return Player;
 }();
 
-window.player = new Player($('#player'));
+window.player = new Player('#player');
 },{"./icons":"src/javascript/icons.js","./swiper":"src/javascript/swiper.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
