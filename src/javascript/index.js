@@ -69,11 +69,15 @@ class Player {
       console.log(this)
       this.classList.remove('panel1')
       this.classList.add('panel2')
+      this.parentNode.querySelector('div.balls').childNodes[1].classList.remove('current')
+      this.parentNode.querySelector('div.balls').childNodes[3].classList.add('current')
     })
     swiper.on('swipRight',function() {
       console.log(this)
       this.classList.remove('panel2')
       this.classList.add('panel1')
+      this.parentNode.querySelector('div.balls').childNodes[1].classList.add('current')
+      this.parentNode.querySelector('div.balls').childNodes[3].classList.remove('current')
     })
 
   }

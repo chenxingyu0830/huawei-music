@@ -285,7 +285,7 @@ function () {
     value: function start() {
       var _this2 = this;
 
-      fetch('https://smallyu.top//data-mock/huawei-music/music-list.json').then(function (res) {
+      fetch('https://jirengu.github.io/data-mock/huawei-music/music-list.json').then(function (res) {
         return res.json();
       }).then(function (data) {
         console.log(data);
@@ -340,11 +340,15 @@ function () {
         console.log(this);
         this.classList.remove('panel1');
         this.classList.add('panel2');
+        this.parentNode.querySelector('div.balls').childNodes[1].classList.remove('current');
+        this.parentNode.querySelector('div.balls').childNodes[3].classList.add('current');
       });
       swiper.on('swipRight', function () {
         console.log(this);
         this.classList.remove('panel2');
         this.classList.add('panel1');
+        this.parentNode.querySelector('div.balls').childNodes[1].classList.add('current');
+        this.parentNode.querySelector('div.balls').childNodes[3].classList.remove('current');
       });
     }
   }, {
@@ -512,7 +516,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "10038" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "5387" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
